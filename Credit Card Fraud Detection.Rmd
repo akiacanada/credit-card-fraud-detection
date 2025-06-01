@@ -1,0 +1,329 @@
+---
+title: "Credit Card Fraud Detection"
+author: "Akia Canada"
+date: "2025-04-05"
+output: html_document
+---
+
+
+Package Install
+
+```{r}
+install.packages(c("data.table", "dplyr", "ggplot2", "corrplot", "caret", "ROCR", 
+                   "rpart", "nnet", "xgboost", "DMwR", "e1071", "pROC"))
+install.packages("DMwR2")
+
+```
+
+```{r}
+install.packages("DMwR2")
+```
+
+
+
+```{r}
+# Load necessary libraries
+
+library(tidyr)
+library(treemapify)  # For Tree Map
+library(scales)      # For percentage scales
+library(stringr)  # For wrapping text
+
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(caret)
+library(ROCR)
+library(rpart)
+library(nnet)
+library(xgboost)
+library(DMwR2)
+library(e1071)
+library(pROC)
+
+
+```
+
+
+
+
+
+```{r}
+# Load datasets 
+
+df_2013 <- fread("creditcard.csv")          
+df_2023 <- fread("creditcard_2023.csv")      
+```
+
+
+```{r}
+# Inspect structure
+
+str(df_2013)
+summary(df_2013)
+table(df_2013$Class)
+```
+
+
+
+```{r}
+# Inspect structure
+
+str(df_2023)
+summary(df_2023)
+table(df_2023$Class)
+
+```
+
+
+# ========== CLEANING ==========
+
+```{r}
+# 1. Remove 'Time' column from 2013 dataset
+df_2013 <- df_2013 %>% select(-Time)
+```
+
+
+```{r}
+# 2. Scale 'Amount'
+df_2013$Amount <- scale(df_2013$Amount)
+```
+
+```{r}
+# 3. Check and remove NA values (if any)
+df_2013 <- na.omit(df_2013)
+df_2023 <- na.omit(df_2023)
+```
+
+```{r}
+# 4. Convert Class to factor
+df_2013$Class <- factor(df_2013$Class, levels = c(0, 1), labels = c("Genuine", "Fraud"))
+df_2023$Class <- factor(df_2023$Class, levels = c(0, 1), labels = c("Genuine", "Fraud"))
+
+```
+
+
+```{r}
+# Scale the Amount column
+#df_2023$Amount <- scale(df_2023$Amount)
+
+# Drop non-feature columns if present (e.g., ID or time)
+#df_2023 <- df_2023 %>% select(where(is.numeric))  # keep numeric only
+
+# Convert Class to factor
+#df_2023$Class <- factor(df_2023$Class, levels = c(0, 1), labels = c("Genuine", "Fraud"))
+
+# Remove missing values
+#df_2023 <- na.omit(df_2023)
+
+```
+
+
+
+# ========== EDA ==========
+
+```{r}
+# Class Distribution/Class Imbalance
+ggplot(df_2013, aes(x = Class)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Class Distribution - 2013 Dataset", x = "Transaction Type", y = "Count")
+
+```
+
+```{r}
+# Amount Distribution
+ggplot(df_2013, aes(x = Amount)) +
+  geom_histogram(bins = 50, fill = "darkgreen") +
+  labs(title = "Transaction Amount Distribution (2013)", x = "Scaled Amount", y = "Frequency")
+
+```
+
+```{r}
+# PCA Feature Correlation Heatmap
+corr_2013 <- cor(df_2013 %>% select(starts_with("V")))
+corrplot(corr_2013, method = "color", tl.cex = 0.6, title = "Correlation Heatmap (PCA Features - 2013)")
+
+```
+
+```{r}
+# Summary Statistics
+summary(df_2013)
+```
+
+
+
+
+```{r}
+# Class distribution
+ggplot(df_2023, aes(x = Class)) +
+  geom_bar(fill = "coral") +
+  ggtitle("Class Distribution - 2023 Dataset")
+
+```
+
+
+```{r}
+# Transaction Amount distribution
+ggplot(df_2023, aes(x = Amount)) +
+  geom_histogram(bins = 50, fill = "blue") +
+  ggtitle("Transaction Amount Distribution (2023)")
+```
+
+
+
+```{r}
+# Correlation matrix (if PCA-style V1-V28 exist)
+pca_cols <- grep("^V[0-9]+$", names(df_2023), value = TRUE)
+if (length(pca_cols) > 1) {
+  corrplot(cor(df_2023[, pca_cols, with = FALSE]), method = "color", tl.cex = 0.6)
+}
+
+```
+
+```{r}
+ggplot(df_2023, aes(x = Amount)) +
+  geom_histogram(bins = 50, fill = "purple") +
+  labs(title = "Transaction Amount Distribution (2023)", x = "Amount", y = "Frequency")
+
+```
+
+```{r}
+# Summary
+summary(df_2023)
+```
+
+
+# ========== Data Preprocessing ==========
+
+```{r}
+ls("package:DMwR2")
+```
+
+```{r}
+df_balanced <- DMwR2::SMOTE(Class ~ ., data = df_2013, perc.over = 100, perc.under = 200)
+
+```
+
+
+```{r}
+# Install and load DMwR2 if not done
+install.packages("DMwR2")
+library(DMwR2)
+
+# Apply SMOTE
+set.seed(123)
+df_balanced <- SMOTE(Class ~ ., data = df_2013, perc.over = 100, perc.under = 200)
+table(df_balanced$Class)
+
+```
+
+
+
+```{r}
+#SMOTE (Synthetic Minority Over-sampling Technique)
+set.seed(123)
+df_balanced <- SMOTE(Class ~ ., data = df_2013, perc.over = 100, perc.under = 200)
+table(df_balanced$Class)
+
+```
+
+
+```{r}
+#Split into Train & Test Sets
+set.seed(123)
+splitIndex <- createDataPartition(df_balanced$Class, p = 0.8, list = FALSE)
+train <- df_balanced[splitIndex, ]
+test <- df_balanced[-splitIndex, ]
+```
+
+# ========== Model Training and Evaluation ==========
+
+```{r}
+# Logistic Regression
+log_model <- glm(Class ~ ., data = train, family = binomial)
+log_pred <- predict(log_model, test, type = "response")
+log_pred_class <- ifelse(log_pred > 0.5, "Fraud", "Genuine")
+confusionMatrix(as.factor(log_pred_class), test$Class)
+
+```
+
+```{r}
+# Decision Tree
+tree_model <- rpart(Class ~ ., data = train, method = "class")
+tree_pred <- predict(tree_model, test, type = "class")
+confusionMatrix(tree_pred, test$Class)
+
+```
+
+```{r}
+# Artificial Neural Network
+nn_model <- nnet(Class ~ ., data = train, size = 5, maxit = 200)
+nn_pred <- predict(nn_model, test, type = "class")
+confusionMatrix(as.factor(nn_pred), test$Class)
+```
+
+```{r}
+# Gradient Boosting (XGBoost)
+train_matrix <- xgb.DMatrix(as.matrix(train[,-ncol(train)]), label = as.numeric(train$Class) - 1)
+test_matrix <- xgb.DMatrix(as.matrix(test[,-ncol(test)]))
+
+xgb_model <- xgboost(data = train_matrix, objective = "binary:logistic", nrounds = 100, verbose = 0)
+xgb_pred <- predict(xgb_model, test_matrix)
+xgb_pred_class <- ifelse(xgb_pred > 0.5, "Fraud", "Genuine")
+confusionMatrix(as.factor(xgb_pred_class), test$Class)
+
+```
+
+# ========== Evaluate Models ==========
+
+For all models, calculate:
+
+Accuracy
+
+Precision
+
+Recall
+
+F1-Score
+
+AUPRC
+
+```{r}
+# Metrics to Assess
+# Example: ROC Curve for Logistic Regression
+log_roc <- prediction(log_pred, test$Class)
+perf <- performance(log_roc, "tpr", "fpr")
+plot(perf, main = "ROC Curve - Logistic Regression")
+
+# AUPRC
+pr <- performance(log_roc, "prec", "rec")
+plot(pr, main = "Precision-Recall Curve")
+
+```
+
+
+# ========== Compare Models ==========
+
+Create a table like this:
+
+Model	Accuracy	Precision	Recall	F1-Score	AUPRC
+Logistic Regression	XX%	XX%	XX%	XX%	XX
+Decision Tree	...	...	...	...	...
+ANN	...	...	...	...	...
+XGBoost	...	...	...	...	...
+
+```{r}
+
+```
+
+
+# ========== Interpret Results ==========
+📌 Key Points:
+Which model performs best overall?
+
+Which model is most interpretable?
+
+How does class imbalance affect results?
+
+Which model is best for real-time deployment?
