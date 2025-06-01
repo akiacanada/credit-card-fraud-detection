@@ -7,6 +7,43 @@ datasets from 2013 and 2023. I developed, evaluated, and compared four machine
 learning models—Logistic Regression, Decision Tree, Neural Network, and XGBoost—to 
 classify fraudulent transactions and explore how fraud patterns have changed over time.
 
+## Data
+
+The datasets used in this project are too large to upload directly to this repository.  
+You can download them from the following sources:
+
+- **creditcard.csv** (2013 dataset): [[](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud?select=creditcard.csv)]
+- **creditcard_2023.csv** (2023 dataset): [[](https://www.kaggle.com/datasets/nelgiriyewithana/credit-card-fraud-detection-dataset-2023?select=creditcard_2023.csv)]
+
+After downloading, place the files in the `data/` folder:
+
+project-folder/
+├── data/
+│   ├── creditcard.csv
+│   └── creditcard_2023.csv
+├── Credit Card Fraud Detection.Rmd
+├── README.md
+└── ...
+
+📥 Download Instructions
+1. Visit the provided Kaggle links.
+
+2. Sign in to your Kaggle account.
+
+3. Navigate to the "Data" tab on each dataset page.
+
+4. Click the "Download" button to obtain the dataset.
+
+5. Extract the downloaded files and move the CSVs into the data/ directory as shown above.
+
+
+
+
+Place the files in a `data/` folder:
+
+
+
+
 ## Objectives
 
 - Compare model performance on fraud data from two different eras
