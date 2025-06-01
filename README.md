@@ -1,8 +1,8 @@
-# Credit Card Fraud Detection: A Decade in Comparison (2013 vs 2023)
+# Credit Card Fraud Detection: A Decade in Comparison (2013 vs 2023) (R)
 
 ## Overview
 
-This project investigates the evolution of credit card fraud over a decade by comparing two 
+This project uses RMarkdown to investigate the evolution of credit card fraud over a decade by comparing two 
 datasets from 2013 and 2023. I developed, evaluated, and compared four machine 
 learning models—Logistic Regression, Decision Tree, Neural Network, and XGBoost—to 
 classify fraudulent transactions and explore how fraud patterns have changed over time.
@@ -17,6 +17,7 @@ classify fraudulent transactions and explore how fraud patterns have changed ove
 
 - Handle class imbalance and implement robust evaluation strategies
 
+
 ## Models Used
 
 - Logistic Regression
@@ -27,14 +28,59 @@ classify fraudulent transactions and explore how fraud patterns have changed ove
 
 - XGBoost Classifier
 
+
 ## Tools & Libraries
 
-- Python, Scikit-learn, XGBoost, Keras, Pandas, NumPy, Matplotlib, Seaborn
+- R
+- RMarkdown
+- tidyr
+- treemapify
+- scales
+- stringr
+- data.table
+- dplyr
+- ggplot2
+- corrplot
+- caret
+- ROCR
+- rpart
+- nnet
+- xgboost
+- DMwR2
+- e1071
+- pROC
 
-- SMOTE (for handling imbalanced data)
 
-- SHAP (for model explainability)
 
+## Installation
+
+To install the required packages, run the following R code:
+
+'''R
+install.packages(c("tidyr", "treemapify", "scales", "stringr", "data.table", "dplyr", 
+                   "ggplot2", "corrplot", "caret", "ROCR", "rpart", "nnet", "xgboost", 
+                   "DMwR2", "e1071", "pROC"))
+
+If you prefer, you can also create a **requirements.R** file in your repo with this content:
+
+'''R
+required_packages <- c("tidyr", "treemapify", "scales", "stringr", "data.table", "dplyr",
+                       "ggplot2", "corrplot", "caret", "ROCR", "rpart", "nnet", "xgboost",
+                       "DMwR2", "e1071", "pROC")
+
+install.packages(required_packages)
+
+## Installation
+
+Run 'requirements.R' to install all necessary packages:
+
+'''R
+source("requirements.R")
+
+
+---
+
+  
 ## Key Results
 
 
@@ -57,7 +103,7 @@ effectiveness of simpler models.
 3. Run the Jupyter Notebook:
   jupyter notebook
 
-4. Open `credit_card_fraud_detection.ipynb` and follow the cells.
+4. Open 'credit_card_fraud_detection.ipynb' and follow the cells.
 
 ## Results
 
